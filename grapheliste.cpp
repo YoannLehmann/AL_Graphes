@@ -85,6 +85,7 @@ void GrapheListe::marquerSommetsNonVisites()
     for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
         (*i)->visite = false;
         (*i)->rencontre = false;
+        (*i)->priorite = 0;
     }
 }
 
@@ -201,9 +202,9 @@ void GrapheListe::traiterSommet(Sommet* _sommet)
 void GrapheListe::calculerPriorite(Sommet* _sommet, TypeParcours _typeParcours)
 {
     if(_typeParcours == PARCOURS_PROFONDEUR_PILE) {
-        this->m_valeurPriorite ++;
-    } else if(_typeParcours == PARCOURS_LARGEUR_FILE) {
         this->m_valeurPriorite --;
+    } else if(_typeParcours == PARCOURS_LARGEUR_FILE) {
+        this->m_valeurPriorite ++;
     }
 
     _sommet->priorite = m_valeurPriorite;
@@ -316,6 +317,58 @@ void GrapheListe::VSGNR(Sommet *_sommet, TypeParcours _typeParcours)
                     sommetLien->rencontre = true;
                     this->calculerPriorite(sommetLien, _typeParcours);
                     this->m_filePriorite.push(sommetLien);
+                }
+            }
+        }
+    }
+}
+
+void GrapheListe::parcoursARPM()
+{
+    this->marquerSommetsNonVisites();
+
+    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+        this->VSARMP((*i));
+    }
+}
+
+void GrapheListe::VSARMP(Sommet *_sommet)
+{
+    if(_sommet->visite == false) {
+
+        _sommet->priorite = 0; // Priorité quelconque.
+        this->m_filePriorite.push(_sommet);
+
+        while(this->m_filePriorite.size() > 0) {
+
+            Sommet* sommetFilePriorite = m_filePriorite.top();
+            m_filePriorite.pop();
+
+            sommetFilePriorite->visite = true;
+
+            traiterSommet(sommetFilePriorite);
+
+            for(std::list<Lien*>::iterator j = sommetFilePriorite->listeDeLien->begin(); j != sommetFilePriorite->listeDeLien->end(); j++) {
+                Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
+
+                if(sommetLien->visite == false) {
+                    sommetLien->priorite = (*j)->ponderation;
+
+                    // Test si le sommet se trouve déjà dans la file de priorité.
+
+                    std::priority_queue<Sommet*, std::vector<Sommet*>, CompareSommet> copieFilePriorite = m_filePriorite;
+                    bool sommetDansLaFileDePriorite = false;
+
+                    while(copieFilePriorite.size() > 0){
+                        Sommet* sommetFileTemp = copieFilePriorite.top();
+                        copieFilePriorite.pop();
+
+                        if(sommetFileTemp->indice == sommetLien->indice)
+                            sommetDansLaFileDePriorite = true;
+                    }
+
+                    if(sommetDansLaFileDePriorite == false)
+                        m_filePriorite.push(sommetLien);
                 }
             }
         }

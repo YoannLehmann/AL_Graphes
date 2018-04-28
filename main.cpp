@@ -9,6 +9,7 @@ using namespace std;
 #define EX_PART1
 
 GrapheListe* creerListeAdjacenteDuCours();
+GrapheListe* creerListeAdjacenteARPM();
 
 int main()
 {
@@ -31,7 +32,7 @@ int main()
 #ifdef EX_PART1
     GrapheListe* gl = creerListeAdjacenteDuCours();
 
-    cout << "Liste de base : " << endl << endl,
+    cout << "Liste de base : " << endl << endl;
     gl->afficher();
 
     //gl->DCFC();
@@ -41,7 +42,17 @@ int main()
     //gl->parcoursProfondeurRecursif();
     //gl->parcoursProfondeurPile();
     //gl->parcoursLargeurFile();
-    gl->parcoursGeneralise(PARCOURS_LARGEUR_FILE);
+    //gl->parcoursGeneralise(PARCOURS_LARGEUR_FILE);
+
+    GrapheListe* gl2 = creerListeAdjacenteARPM();
+    cout << "Liste de base ARPM" << endl << endl;
+
+    gl2->afficher();
+
+    cout << endl << "Liste après parcours : " << endl << endl;
+
+    gl2->parcoursARPM();
+
 #endif
     return 0;
 }
@@ -80,6 +91,54 @@ GrapheListe* creerListeAdjacenteDuCours(){
 
     grapheListe->ajouterArc('K','I');
     grapheListe->ajouterArc('K','J');
+
+    return grapheListe;
+}
+
+// Création de la liste adjacente avec arcs pondérés (selon l'exemple ARMP p.24)
+GrapheListe* creerListeAdjacenteARPM() {
+    GrapheListe *grapheListe = new GrapheListe(11);
+
+    grapheListe->ajouterArc('A', 'B', 1);
+    grapheListe->ajouterArc('A', 'F', 4);
+    grapheListe->ajouterArc('A', 'G', 2);
+    grapheListe->ajouterArc('A', 'C', 2);
+
+    grapheListe->ajouterArc('B', 'A', 1);
+
+    grapheListe->ajouterArc('C', 'J', 1);
+    grapheListe->ajouterArc('C', 'A', 2);
+    grapheListe->ajouterArc('C', 'G', 1);
+    grapheListe->ajouterArc('C', 'H', 3);
+
+    grapheListe->ajouterArc('D', 'E', 1);
+    grapheListe->ajouterArc('D', 'F', 1);
+
+    grapheListe->ajouterArc('E', 'G', 1);
+    grapheListe->ajouterArc('E', 'F', 3);
+    grapheListe->ajouterArc('E', 'D', 1);
+
+    grapheListe->ajouterArc('F', 'A', 4);
+    grapheListe->ajouterArc('F', 'D', 1);
+    grapheListe->ajouterArc('F', 'E', 1);
+
+    grapheListe->ajouterArc('G', 'C', 1);
+    grapheListe->ajouterArc('G', 'A', 2);
+    grapheListe->ajouterArc('G', 'E', 1);
+
+    grapheListe->ajouterArc('H', 'K', 1);
+    grapheListe->ajouterArc('H', 'C', 3);
+
+    grapheListe->ajouterArc('I','J', 3);
+    grapheListe->ajouterArc('I','K', 1);
+
+    grapheListe->ajouterArc('J','K', 1);
+    grapheListe->ajouterArc('J','I', 3);
+    grapheListe->ajouterArc('J','C', 1);
+
+    grapheListe->ajouterArc('K','I', 1);
+    grapheListe->ajouterArc('K','J', 1);
+    grapheListe->ajouterArc('K','H', 1);
 
     return grapheListe;
 }

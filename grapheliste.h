@@ -24,7 +24,7 @@ typedef struct Lien Lien;
 struct CompareSommet {
     bool operator()(const Sommet* lhs, const Sommet* rhs) const
     {
-        return lhs->priorite < rhs->priorite;
+        return lhs->priorite > rhs->priorite;
     }
 };
 typedef struct CompareSommet CompareSommet;
@@ -63,6 +63,9 @@ public:
 
     void parcoursGeneralise(TypeParcours _typeParcours);
     void VSGNR(Sommet* _sommet, TypeParcours _typeParcours); // Visiter le Sommet en Généralisé Non Récursif.
+
+    void parcoursARPM(); // Algorithme de Prim.
+    void VSARMP(Sommet* _sommet);   // Visiter le Sommet avec ARMP.
 
     void DCFC(); // Détermination des composantes fortement connexes d'un graphe orienté.
     int  visiterSommetDCFC(Sommet* sommet);
