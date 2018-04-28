@@ -1,19 +1,19 @@
 #include "grapheliste.h"
 #include <iostream>
-#include <stack>
-#include <queue>
 
-GrapheListe::GrapheListe(int nombreSommet)
+using namespace std;
+
+GrapheListe::GrapheListe(int _nombreSommet)
 {
-    this->m_nombreSommet = nombreSommet;
+    this->m_nombreSommet = _nombreSommet;
 
-    this->m_listeDeSommet = new std::list<struct Sommet*>();
+    this->m_listeDeSommet = new std::list<Sommet*>();
 
     for(int i = 0; i < this->m_nombreSommet; i++){
-        struct Sommet* sommet = new struct Sommet();
-        sommet->stack = false;
+        struct Sommet* sommet = new Sommet();
+        sommet->empile = false;
         sommet->visite = false;
-        sommet->listDeLien = new std::list<struct Link*>();
+        sommet->listeDeLien = new std::list<Lien*>();
         sommet->indice = 'A' + static_cast<char>(i);
         sommet->marquage = 0;
 
@@ -23,9 +23,9 @@ GrapheListe::GrapheListe(int nombreSommet)
 
 GrapheListe::~GrapheListe()
 {
-    for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+    for (std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
 
-        for(std::list<struct Link*>::iterator j = (*i)->listDeLien->begin(); j != (*i)->listDeLien->end(); j++){
+        for(std::list<Lien*>::iterator j = (*i)->listeDeLien->begin(); j != (*i)->listeDeLien->end(); j++){
             delete (*j);
             (*j) = nullptr;
         }
@@ -36,50 +36,51 @@ GrapheListe::~GrapheListe()
     delete this->m_listeDeSommet;
 }
 
-void GrapheListe::display()
+void GrapheListe::afficher()
 {
 
-    for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+    for (std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+
+        // Entête.
         std::cout << "V["
         << ((*i)->visite ? "X" : " ")
         << "]"
         << "S["
-        << ((*i)->stack ? "X" : " ")
+        << ((*i)->empile ? "X" : " ")
         << "]_";
         std::cout << "'" << (*i)->indice << "':";
 
 
-        for(std::list<struct Link*>::iterator j = (*i)->listDeLien->begin(); j != (*i)->listDeLien->end(); j++){
+        for(std::list<Lien*>::iterator j = (*i)->listeDeLien->begin(); j != (*i)->listeDeLien->end(); j++){
             std::cout << "--" << (*j)->ponderation << "-->" << (*j)->indice;
         }
-
 
         std::cout << std::endl;
     }
 }
 
-void GrapheListe::ajouterArc(char sommetDepart, char sommetArrive, int ponderation)
+void GrapheListe::ajouterArc(char _sommetDepart, char _sommetArrive, int _ponderation)
 {
-    std::list<struct Sommet*>::iterator it = this->m_listeDeSommet->begin();
+    std::list<Sommet*>::iterator it = this->m_listeDeSommet->begin();
 
-    std::advance(it, static_cast<int>(sommetDepart - 'A')); // Avance l'itérateur jusqu'au bon élément.
+    std::advance(it, static_cast<int>(_sommetDepart - 'A')); // Avance l'itérateur jusqu'au bon élément.
 
-    struct Link* link = new struct Link();
-    link->indice = sommetArrive;
-    link->ponderation = ponderation;
+    Lien* lien = new Lien();
+    lien->indice = _sommetArrive;
+    lien->ponderation = _ponderation;
 
-    (*it)->listDeLien->push_back(link);
+    (*it)->listeDeLien->push_back(lien);
 }
 
-void GrapheListe::ajouterArrete(char sommet1, char sommet2, int ponderation)
+void GrapheListe::ajouterArrete(char _sommet1, char _sommet2, int _ponderation)
 {
-    this->ajouterArc(sommet1, sommet2, ponderation);
-    this->ajouterArc(sommet2, sommet1, ponderation);
+    this->ajouterArc(_sommet1, _sommet2, _ponderation);
+    this->ajouterArc(_sommet2, _sommet1, _ponderation);
 }
 
 struct Sommet* GrapheListe::getSommetFromChar(char indice)
 {
-    for (std::list<struct Sommet*>::iterator j = this->m_listeDeSommet->begin(); j != this->m_listeDeSommet->end(); j++) {
+    for (std::list<Sommet*>::iterator j = this->m_listeDeSommet->begin(); j != this->m_listeDeSommet->end(); j++) {
 
         if((*j)->indice == indice){
             return (*j);
@@ -89,7 +90,36 @@ struct Sommet* GrapheListe::getSommetFromChar(char indice)
     return nullptr;
 }
 
-void GrapheListe::parcoursProfondeurRecursif(bool sensAlphabetique)
+void GrapheListe::afficherPile()
+{
+    cout << "Etat de la pile : " << endl;
+
+    if(m_pile.size() > 0){
+
+        std::stack<struct Sommet*> copiePile;
+
+        // Dépilage et affichage de tous les éléments de la pile.
+        while(m_pile.size() > 0){
+            struct Sommet* sommetPile = m_pile.top();
+            m_pile.pop();
+            cout << "[" << sommetPile->indice << "]" << endl;
+            copiePile.push(sommetPile);
+        }
+
+        // Réempilage des éléments dépilés.
+        while(copiePile.size() > 0){
+            struct Sommet* sommetPile = copiePile.top();
+            copiePile.pop();
+            m_pile.push(sommetPile);
+        }
+    } else {
+        cout << "Pile vide" << endl;
+    }
+
+    cout << endl;
+}
+
+void GrapheListe::parcoursProfondeurRecursif(bool _sensAlphabetique)
 {
 
     for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
@@ -99,81 +129,58 @@ void GrapheListe::parcoursProfondeurRecursif(bool sensAlphabetique)
     std::cout << std::endl;
 }
 
-void GrapheListe::VSPR(struct Sommet *sommet)
+void GrapheListe::VSPR(struct Sommet *_sommet)
 {
-    if(sommet->visite == false){
-        sommet->visite = true;
-        std::cout << sommet->indice;
+    if(_sommet->visite == false){
+        _sommet->visite = true;
+        std::cout << _sommet->indice;
 
-        if(sommet->listDeLien->size() > 0)
-            VSPR(getSommetFromChar(sommet->listDeLien->front()->indice));
+        if(_sommet->listeDeLien->size() > 0)
+            VSPR(getSommetFromChar(_sommet->listeDeLien->front()->indice));
     }
 }
 
 void GrapheListe::parcoursProfondeurPile(bool sensAlphabetique)
 {
-    std::stack<struct Sommet*> stack;
-
     for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+        this->VSPNR((*i));
+    }
+    cout << endl;
+}
 
-        // --> VSPNR
-        if((*i)->visite == false){
+void GrapheListe::VSPNR(Sommet* _sommet)
+{
+    if(_sommet->visite == false){
 
-            (*i)->stack = true;
-            stack.push((*i));
+        _sommet->empile = true;
+        m_pile.push(_sommet);
 
-            while(stack.empty() == false){
-                struct Sommet* sommet = stack.top(); // Accède au dernier élément.
-                stack.pop(); // Dépile l'élément de la pile.
-                sommet->visite = true;
+        while(m_pile.empty() == false){
 
-                // Affichage de l'indice.
-                std::cout << "Sommet : " << sommet->indice << " visité." << std::endl;
+            struct Sommet* sommetPile = m_pile.top(); // Accède au dernier élément.
+            m_pile.pop();                             // Dépile l'élément de la pile.
+            sommetPile->visite = true;                // Indique que l'élément dépilé est visité.
 
+            // Affichage de l'indice.
+            cout << "Sommet : " << sommetPile->indice << " visité." << endl;
 
+            // Affichage de l'état de la pile.
+            afficherPile();
 
-                // Affichage de l'état de la pile.
-                std::cout << "Etat de la pile : " << std::endl;
-                if(stack.size() > 0){
-                    std::stack<struct Sommet*> copieStack;
-                    while(stack.size() > 0){
-                        struct Sommet* sommet = stack.top();
-                        stack.pop();
-                        std::cout << "[" << sommet->indice << "]" << std::endl;
-                        copieStack.push(sommet);
-                    }
-                    while(copieStack.size() > 0){
-                        struct Sommet* sommet = copieStack.top();
-                        copieStack.pop();
-                        stack.push(sommet);
-                    }
-                } else {
-                    std::cout << "Pile vide" << std::endl;
-                }
+            // Parcours de tous les voisins du sommet.
+            for(std::list<struct Lien*>::iterator j = sommetPile->listeDeLien->begin(); j != sommetPile->listeDeLien->end(); j++){
 
-                std::cout << std::endl;
-
-                for(std::list<struct Link*>::iterator j = sommet->listDeLien->begin(); j != sommet->listDeLien->end(); j++){
-
-                    struct Sommet* sommetDuLien = getSommetFromChar((*j)->indice);
-                    if(sommetDuLien->stack == false && sommetDuLien->visite == false){
-                        sommetDuLien->stack = true;
-                        stack.push(sommetDuLien);
-                    }
+                // Récupération du sommet voisin.
+                struct Sommet* sommetLien = getSommetFromChar((*j)->indice);
+                // Si le voisin n'est ni empilé ni visité, on l'empile et le marque comme empilé.
+                if(sommetLien->empile == false && sommetLien->visite == false){
+                    sommetLien->empile = true;
+                    m_pile.push(sommetLien);
                 }
             }
-
         }
 
     }
-
-    std::cout << std::endl;
-
-}
-
-void GrapheListe::VSPNR(Sommet *sommet)
-{
-
 }
 
 void GrapheListe::parcoursLargeurFile(bool sensAlphabetique)
@@ -184,7 +191,7 @@ void GrapheListe::parcoursLargeurFile(bool sensAlphabetique)
 
         // --> VSLNR
         if((*i)->visite == false){
-            (*i)->stack = true;
+            (*i)->empile = true;
             queue.push(*i);
 
             while(queue.size() > 0){
@@ -214,11 +221,11 @@ void GrapheListe::parcoursLargeurFile(bool sensAlphabetique)
 
 
 
-                for(std::list<struct Link*>::iterator j = sommet->listDeLien->begin(); j != sommet->listDeLien->end(); j++){
+                for(std::list<struct Lien*>::iterator j = sommet->listeDeLien->begin(); j != sommet->listeDeLien->end(); j++){
                     struct Sommet* sommetLink = getSommetFromChar((*j)->indice);
 
-                    if(sommetLink->stack == false && sommetLink->visite == false){
-                        sommetLink->stack = true;
+                    if(sommetLink->empile == false && sommetLink->visite == false){
+                        sommetLink->empile = true;
                         queue.push(sommetLink);
                     }
                 }
@@ -227,7 +234,7 @@ void GrapheListe::parcoursLargeurFile(bool sensAlphabetique)
     }
 }
 
-void GrapheListe::VSLNR(Sommet *sommet)
+void GrapheListe::VSLNR(Sommet *_sommet)
 {
 
 }
@@ -251,7 +258,7 @@ int GrapheListe::visiterSommetDCFC(Sommet *sommet)
     sommet->marquage = m_nombreCourant;
     this->m_pile.push(sommet);
 
-    for(std::list<struct Link*>::iterator j = sommet->listDeLien->begin(); j != sommet->listDeLien->end(); j++) {
+    for(std::list<struct Lien*>::iterator j = sommet->listeDeLien->begin(); j != sommet->listeDeLien->end(); j++) {
         struct Sommet* sommetLink = getSommetFromChar((*j)->indice);
         int marquage = 0;
 

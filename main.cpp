@@ -31,16 +31,16 @@ int main()
 #ifdef EX_PART1
     GrapheListe* gl = creerListeAdjacenteDuCours();
 
-    cout << "Matrice de base : " << endl << endl,
-    gl->display();
+    cout << "Liste de base : " << endl << endl,
+    gl->afficher();
 
-    gl->DCFC();
+    //gl->DCFC();
 
-    cout << endl << "Matrice après parcours : " << endl << endl;
+    cout << endl << "Liste après parcours : " << endl << endl;
 
     //gl->parcoursProfondeurRecursif();
     //gl->parcoursProfondeurPile();
-    //gl->parcoursLargeur();
+    gl->parcoursLargeurFile();
 
 #endif
     return 0;

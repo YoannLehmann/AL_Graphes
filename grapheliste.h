@@ -8,46 +8,49 @@
 struct Sommet {
   char indice;
   bool visite;
-  bool stack;
+  bool empile;
   int  marquage;
-  std::list<struct Link*>* listDeLien;
+  std::list<struct Lien*>* listeDeLien;
 };
+typedef struct Sommet Sommet;
 
-struct Link {
-    char indice;
-    int ponderation;
+struct Lien {
+    char  indice;
+    int   ponderation;
 };
+typedef struct Lien Lien;
 
 class GrapheListe
 {
 public:
-    GrapheListe(int m_nombreSommet);
+    GrapheListe(int _nombreSommet);
     ~GrapheListe();
 
-    void display();
-    void ajouterArc(char sommetDepart, char sommetArrive, int ponderation = 1);
-    void ajouterArrete(char sommet1, char sommet2, int ponderation = 1);
-    struct Sommet* getSommetFromChar(char indice);
+    void afficher();
+    void ajouterArc(char _sommetDepart, char _sommetArrive, int _ponderation = 1);
+    void ajouterArrete(char _sommet1, char _sommet2, int _ponderation = 1);
 
+    Sommet* getSommetFromChar(char indice);
+    void afficherPile();
 
-    void parcoursProfondeurRecursif(bool sensAlphabetique = true);
-    void VSPR(struct Sommet* sommet); // Visite à partir du Sommet en Profondeur Récursif.
+    void parcoursProfondeurRecursif(bool _sensAlphabetique = true);
+    void VSPR(Sommet* _sommet); // Visite à partir du Sommet en Profondeur Récursif.
 
     void parcoursProfondeurPile(bool sensAlphabetique = true);
-    void VSPNR(struct Sommet* sommet); // Visiter le Sommet en Profondeur Non Récursif.
+    void VSPNR(Sommet* _sommet); // Visiter le Sommet en Profondeur Non Récursif.
 
     void parcoursLargeurFile(bool sensAlphabetique = false);
-    void VSLNR(struct Sommet* sommet); // Visiter le Sommet en Largeur Non Récursif.
+    void VSLNR(Sommet* _sommet); // Visiter le Sommet en Largeur Non Récursif.
 
-    // Détermination des composantes fortement connexes d'un graphe orienté.
-    void DCFC();
-    int  visiterSommetDCFC(struct Sommet* sommet);
+
+    void DCFC(); // Détermination des composantes fortement connexes d'un graphe orienté.
+    int  visiterSommetDCFC(Sommet* sommet);
 private:
-    std::list<struct Sommet*>* m_listeDeSommet;
+    std::list<Sommet*>* m_listeDeSommet;
+    std::stack<Sommet*> m_pile;
+    std::queue<Sommet*> m_file;
     int m_nombreSommet;
     int m_nombreCourant;
-    std::stack<struct Sommet*> m_pile;
-    std::queue<struct Sommet*> m_file;
 };
 
 #endif // GRAPHELISTE_H
