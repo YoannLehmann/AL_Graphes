@@ -6,8 +6,9 @@ using namespace std;
 GrapheListe::GrapheListe(int _nombreSommet)
 {
     this->m_nombreSommet = _nombreSommet;
-
+    this->m_valeurPriorite = 0;
     this->m_listeDeSommet = new std::list<Sommet*>();
+
 
     for(int i = 0; i < this->m_nombreSommet; i++){
         struct Sommet* sommet = new Sommet();
@@ -16,6 +17,7 @@ GrapheListe::GrapheListe(int _nombreSommet)
         sommet->listeDeLien = new std::list<Lien*>();
         sommet->indice = 'A' + static_cast<char>(i);
         sommet->marquage = 0;
+        sommet->priorite = 0;
 
         this->m_listeDeSommet->push_back(sommet);
     }
@@ -82,6 +84,7 @@ void GrapheListe::marquerSommetsNonVisites()
 {
     for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
         (*i)->visite = false;
+        (*i)->rencontre = false;
     }
 }
 
@@ -190,9 +193,20 @@ void GrapheListe::parcoursProfondeurPile()
  *        Traitement du sommet. (Pour l'instant, affichage uniquement)
  * @param sommet
  */
-void GrapheListe::traiterSommet(Sommet* sommet)
+void GrapheListe::traiterSommet(Sommet* _sommet)
 {
-    cout << "Sommet : " << sommet->indice << " visité." << endl;
+    cout << "Sommet : " << _sommet->indice << " visité." << endl;
+}
+
+void GrapheListe::calculerPriorite(Sommet* _sommet, TypeParcours _typeParcours)
+{
+    if(_typeParcours == PARCOURS_PROFONDEUR_PILE) {
+        this->m_valeurPriorite ++;
+    } else if(_typeParcours == PARCOURS_LARGEUR_FILE) {
+        this->m_valeurPriorite --;
+    }
+
+    _sommet->priorite = m_valeurPriorite;
 }
 
 void GrapheListe::VSPNR(Sommet* _sommet)
@@ -215,10 +229,10 @@ void GrapheListe::VSPNR(Sommet* _sommet)
             afficherPile();
 
             // Parcours de tous les voisins du sommet.
-            for(std::list<struct Lien*>::iterator j = sommetPile->listeDeLien->begin(); j != sommetPile->listeDeLien->end(); j++){
+            for(std::list<Lien*>::iterator j = sommetPile->listeDeLien->begin(); j != sommetPile->listeDeLien->end(); j++){
 
                 // Récupération du sommet voisin.
-                struct Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
+                Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
                 // Si le voisin n'est ni empilé ni visité, on l'empile et le marque comme empilé.
                 if(sommetLien->rencontre == false && sommetLien->visite == false){
                     sommetLien->rencontre = true;
@@ -264,6 +278,44 @@ void GrapheListe::VSLNR(Sommet *_sommet)
                 if(sommetLien->rencontre == false && sommetLien->visite == false){
                     sommetLien->rencontre = true;
                     m_file.push(sommetLien);
+                }
+            }
+        }
+    }
+}
+
+void GrapheListe::parcoursGeneralise(TypeParcours _typeParcours)
+{
+    this->marquerSommetsNonVisites();
+
+    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
+        this->VSGNR((*i), _typeParcours);
+    }
+}
+
+void GrapheListe::VSGNR(Sommet *_sommet, TypeParcours _typeParcours)
+{
+    if(_sommet->visite == false) {
+        _sommet->rencontre = true;
+
+        this->calculerPriorite(_sommet, _typeParcours);
+        this->m_filePriorite.push(_sommet);
+
+        while(m_filePriorite.size() > 0) {
+            Sommet* sommetFilePriorite = m_filePriorite.top();
+            m_filePriorite.pop();
+
+            sommetFilePriorite->visite = true;
+
+            this->traiterSommet(sommetFilePriorite);
+
+            for(std::list<Lien*>::iterator j = sommetFilePriorite->listeDeLien->begin(); j != sommetFilePriorite->listeDeLien->end(); j++) {
+                Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
+
+                if(sommetLien->visite == false && sommetLien->rencontre == false) {
+                    sommetLien->rencontre = true;
+                    this->calculerPriorite(sommetLien, _typeParcours);
+                    this->m_filePriorite.push(sommetLien);
                 }
             }
         }

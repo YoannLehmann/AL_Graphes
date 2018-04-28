@@ -38,10 +38,10 @@ int main()
 
     cout << endl << "Liste après parcours : " << endl << endl;
 
-    gl->parcoursProfondeurRecursif();
+    //gl->parcoursProfondeurRecursif();
     //gl->parcoursProfondeurPile();
     //gl->parcoursLargeurFile();
-
+    gl->parcoursGeneralise(PARCOURS_LARGEUR_FILE);
 #endif
     return 0;
 }

@@ -10,6 +10,7 @@ struct Sommet {
   bool visite;
   bool rencontre;
   int  marquage;
+  int  priorite;
   std::list<struct Lien*>* listeDeLien;
 };
 typedef struct Sommet Sommet;
@@ -19,6 +20,19 @@ struct Lien {
     int   ponderation;
 };
 typedef struct Lien Lien;
+
+struct CompareSommet {
+    bool operator()(const Sommet* lhs, const Sommet* rhs) const
+    {
+        return lhs->priorite < rhs->priorite;
+    }
+};
+typedef struct CompareSommet CompareSommet;
+
+enum TypeParcours {
+    PARCOURS_PROFONDEUR_PILE,
+    PARCOURS_LARGEUR_FILE
+};
 
 class GrapheListe
 {
@@ -35,7 +49,8 @@ public:
     void afficherPile();
     void afficherFile();
     Sommet* obtenirSommetDepuisIndice(char indice);
-    void traiterSommet(Sommet* sommet);
+    void traiterSommet(Sommet* _sommet);
+    void calculerPriorite(Sommet* _sommet, TypeParcours _typeParcours);
 
     void parcoursProfondeurRecursif();
     void VSPR(Sommet* _sommet); // Visite à partir du Sommet en Profondeur Récursif.
@@ -46,6 +61,8 @@ public:
     void parcoursLargeurFile();
     void VSLNR(Sommet* _sommet); // Visiter le Sommet en Largeur Non Récursif.
 
+    void parcoursGeneralise(TypeParcours _typeParcours);
+    void VSGNR(Sommet* _sommet, TypeParcours _typeParcours); // Visiter le Sommet en Généralisé Non Récursif.
 
     void DCFC(); // Détermination des composantes fortement connexes d'un graphe orienté.
     int  visiterSommetDCFC(Sommet* sommet);
@@ -55,8 +72,11 @@ private:
     std::list<Sommet*>* m_listeDeSommet;
     std::stack<Sommet*> m_pile;
     std::queue<Sommet*> m_file;
+
+    std::priority_queue<Sommet*, std::vector<Sommet*>, CompareSommet> m_filePriorite;
     int m_nombreSommet;
     int m_nombreCourant;
+    int m_valeurPriorite;
 };
 
 #endif // GRAPHELISTE_H
