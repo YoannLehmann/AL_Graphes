@@ -38,9 +38,9 @@ int main()
 
     cout << endl << "Liste après parcours : " << endl << endl;
 
-    //gl->parcoursProfondeurRecursif();
+    gl->parcoursProfondeurRecursif();
     //gl->parcoursProfondeurPile();
-    gl->parcoursLargeurFile();
+    //gl->parcoursLargeurFile();
 
 #endif
     return 0;

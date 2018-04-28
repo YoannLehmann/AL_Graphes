@@ -11,7 +11,7 @@ GrapheListe::GrapheListe(int _nombreSommet)
 
     for(int i = 0; i < this->m_nombreSommet; i++){
         struct Sommet* sommet = new Sommet();
-        sommet->empile = false;
+        sommet->rencontre = false;
         sommet->visite = false;
         sommet->listeDeLien = new std::list<Lien*>();
         sommet->indice = 'A' + static_cast<char>(i);
@@ -46,7 +46,7 @@ void GrapheListe::afficher()
         << ((*i)->visite ? "X" : " ")
         << "]"
         << "S["
-        << ((*i)->empile ? "X" : " ")
+        << ((*i)->rencontre ? "X" : " ")
         << "]_";
         std::cout << "'" << (*i)->indice << "':";
 
@@ -78,10 +78,16 @@ void GrapheListe::ajouterArrete(char _sommet1, char _sommet2, int _ponderation)
     this->ajouterArc(_sommet2, _sommet1, _ponderation);
 }
 
-struct Sommet* GrapheListe::getSommetFromChar(char indice)
+void GrapheListe::marquerSommetsNonVisites()
+{
+    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
+        (*i)->visite = false;
+    }
+}
+
+struct Sommet* GrapheListe::obtenirSommetDepuisIndice(char indice)
 {
     for (std::list<Sommet*>::iterator j = this->m_listeDeSommet->begin(); j != this->m_listeDeSommet->end(); j++) {
-
         if((*j)->indice == indice){
             return (*j);
         }
@@ -119,8 +125,35 @@ void GrapheListe::afficherPile()
     cout << endl;
 }
 
-void GrapheListe::parcoursProfondeurRecursif(bool _sensAlphabetique)
+void GrapheListe::afficherFile()
 {
+    cout << "Etat de la file : " << endl;
+
+    if(m_file.size() > 0){
+        std::queue<Sommet*> copieFile;
+
+        // Défile et affiche tous les éléments de la file.
+        while(m_file.size() > 0){
+            Sommet* sommetFile = m_file.front();
+            m_file.pop();
+            cout << "[" << sommetFile->indice << "]" << endl;
+            copieFile.push(sommetFile);
+        }
+
+        // Enfile tous les éléments défilés.
+        while(copieFile.size() > 0){
+            Sommet* sommetFile = copieFile.front();
+            copieFile.pop();
+            m_file.push(sommetFile);
+        }
+    } else {
+        cout << "File vide" << endl;
+    }
+}
+
+void GrapheListe::parcoursProfondeurRecursif()
+{
+    this->marquerSommetsNonVisites();
 
     for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
         VSPR((*i));
@@ -129,40 +162,54 @@ void GrapheListe::parcoursProfondeurRecursif(bool _sensAlphabetique)
     std::cout << std::endl;
 }
 
-void GrapheListe::VSPR(struct Sommet *_sommet)
+void GrapheListe::VSPR(Sommet *_sommet)
 {
     if(_sommet->visite == false){
         _sommet->visite = true;
-        std::cout << _sommet->indice;
 
-        if(_sommet->listeDeLien->size() > 0)
-            VSPR(getSommetFromChar(_sommet->listeDeLien->front()->indice));
+        // Traitement du sommet courant.
+        traiterSommet(_sommet);
+
+        for(std::list<Lien*>::iterator j = _sommet->listeDeLien->begin(); j != _sommet->listeDeLien->end(); j++)
+            VSPR(obtenirSommetDepuisIndice((*j)->indice));
     }
 }
 
-void GrapheListe::parcoursProfondeurPile(bool sensAlphabetique)
+void GrapheListe::parcoursProfondeurPile()
 {
-    for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+    this->marquerSommetsNonVisites();
+
+    for (std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
         this->VSPNR((*i));
     }
     cout << endl;
+}
+
+/**
+ * @brief GrapheListe::traiterSommet
+ *        Traitement du sommet. (Pour l'instant, affichage uniquement)
+ * @param sommet
+ */
+void GrapheListe::traiterSommet(Sommet* sommet)
+{
+    cout << "Sommet : " << sommet->indice << " visité." << endl;
 }
 
 void GrapheListe::VSPNR(Sommet* _sommet)
 {
     if(_sommet->visite == false){
 
-        _sommet->empile = true;
+        _sommet->rencontre = true;
         m_pile.push(_sommet);
 
         while(m_pile.empty() == false){
 
-            struct Sommet* sommetPile = m_pile.top(); // Accède au dernier élément.
+            Sommet* sommetPile = m_pile.top();        // Accède au premier élément.
             m_pile.pop();                             // Dépile l'élément de la pile.
             sommetPile->visite = true;                // Indique que l'élément dépilé est visité.
 
-            // Affichage de l'indice.
-            cout << "Sommet : " << sommetPile->indice << " visité." << endl;
+            // Traitement du sommet courant.
+            traiterSommet(sommetPile);
 
             // Affichage de l'état de la pile.
             afficherPile();
@@ -171,10 +218,10 @@ void GrapheListe::VSPNR(Sommet* _sommet)
             for(std::list<struct Lien*>::iterator j = sommetPile->listeDeLien->begin(); j != sommetPile->listeDeLien->end(); j++){
 
                 // Récupération du sommet voisin.
-                struct Sommet* sommetLien = getSommetFromChar((*j)->indice);
+                struct Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
                 // Si le voisin n'est ni empilé ni visité, on l'empile et le marque comme empilé.
-                if(sommetLien->empile == false && sommetLien->visite == false){
-                    sommetLien->empile = true;
+                if(sommetLien->rencontre == false && sommetLien->visite == false){
+                    sommetLien->rencontre = true;
                     m_pile.push(sommetLien);
                 }
             }
@@ -183,60 +230,44 @@ void GrapheListe::VSPNR(Sommet* _sommet)
     }
 }
 
-void GrapheListe::parcoursLargeurFile(bool sensAlphabetique)
+void GrapheListe::parcoursLargeurFile()
 {
-    std::queue<struct Sommet*> queue;
+    this->marquerSommetsNonVisites();
 
     for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
-
-        // --> VSLNR
-        if((*i)->visite == false){
-            (*i)->empile = true;
-            queue.push(*i);
-
-            while(queue.size() > 0){
-                struct Sommet* sommet = queue.front();
-                queue.pop();
-                sommet->visite = true;
-
-                // Affichage de l'état de la file.
-                std::cout << "Sommet : " << sommet->indice << " visité." << std::endl;
-                std::cout << "Etat de la file : " << std::endl;
-                if(queue.size() > 0){
-                    std::queue<struct Sommet*> copieQueue;
-                    while(queue.size() > 0){
-                        struct Sommet* sommet = queue.front();
-                        queue.pop();
-                        std::cout << "[" << sommet->indice << "]" << std::endl;
-                        copieQueue.push(sommet);
-                    }
-                    while(copieQueue.size() > 0){
-                        struct Sommet* sommet = copieQueue.front();
-                        copieQueue.pop();
-                        queue.push(sommet);
-                    }
-                } else {
-                    std::cout << "File vide" << std::endl;
-                }
-
-
-
-                for(std::list<struct Lien*>::iterator j = sommet->listeDeLien->begin(); j != sommet->listeDeLien->end(); j++){
-                    struct Sommet* sommetLink = getSommetFromChar((*j)->indice);
-
-                    if(sommetLink->empile == false && sommetLink->visite == false){
-                        sommetLink->empile = true;
-                        queue.push(sommetLink);
-                    }
-                }
-            }
-        }
+        this->VSLNR((*i));
     }
 }
 
 void GrapheListe::VSLNR(Sommet *_sommet)
 {
+    if(_sommet->visite == false){
+        _sommet->rencontre = true;
+        m_file.push(_sommet);
 
+        while(m_file.size() > 0){
+
+            Sommet* sommetFile = m_file.front();    // Accède au dernier élément.
+            m_file.pop();                           // Défile le dernier élément.
+            sommetFile->visite = true;              // Marque l'élément comme visité.
+
+            // Traitement du sommet courant.
+            this->traiterSommet(sommetFile);
+
+            // Affichage de l'état de la file.
+            afficherFile();
+
+            for(std::list<Lien*>::iterator j = sommetFile->listeDeLien->begin(); j != sommetFile->listeDeLien->end(); j++){
+
+                Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
+
+                if(sommetLien->rencontre == false && sommetLien->visite == false){
+                    sommetLien->rencontre = true;
+                    m_file.push(sommetLien);
+                }
+            }
+        }
+    }
 }
 
 void GrapheListe::DCFC()
@@ -259,7 +290,7 @@ int GrapheListe::visiterSommetDCFC(Sommet *sommet)
     this->m_pile.push(sommet);
 
     for(std::list<struct Lien*>::iterator j = sommet->listeDeLien->begin(); j != sommet->listeDeLien->end(); j++) {
-        struct Sommet* sommetLink = getSommetFromChar((*j)->indice);
+        struct Sommet* sommetLink = obtenirSommetDepuisIndice((*j)->indice);
         int marquage = 0;
 
         if(sommetLink->visite == false){
