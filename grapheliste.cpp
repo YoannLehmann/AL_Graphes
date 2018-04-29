@@ -106,22 +106,15 @@ void GrapheListe::afficherPile()
 
     if(m_pile.size() > 0){
 
-        std::stack<struct Sommet*> copiePile;
+        std::stack<Sommet*> copiePile = m_pile;
 
-        // Dépilage et affichage de tous les éléments de la pile.
-        while(m_pile.size() > 0){
-            struct Sommet* sommetPile = m_pile.top();
-            m_pile.pop();
-            cout << "[" << sommetPile->indice << "]" << endl;
-            copiePile.push(sommetPile);
-        }
-
-        // Réempilage des éléments dépilés.
+        // Dépilage et affichage de tous les éléments de la copie de la pile.
         while(copiePile.size() > 0){
             struct Sommet* sommetPile = copiePile.top();
             copiePile.pop();
-            m_pile.push(sommetPile);
+            cout << "[" << sommetPile->indice << "]" << endl;
         }
+
     } else {
         cout << "Pile vide" << endl;
     }
@@ -134,24 +127,35 @@ void GrapheListe::afficherFile()
     cout << "Etat de la file : " << endl;
 
     if(m_file.size() > 0){
-        std::queue<Sommet*> copieFile;
+
+        std::queue<Sommet*> copieFile = m_file;
 
         // Défile et affiche tous les éléments de la file.
-        while(m_file.size() > 0){
-            Sommet* sommetFile = m_file.front();
-            m_file.pop();
-            cout << "[" << sommetFile->indice << "]" << endl;
-            copieFile.push(sommetFile);
-        }
-
-        // Enfile tous les éléments défilés.
         while(copieFile.size() > 0){
             Sommet* sommetFile = copieFile.front();
             copieFile.pop();
-            m_file.push(sommetFile);
+            cout << "[" << sommetFile->indice << "]" << endl;
         }
     } else {
         cout << "File vide" << endl;
+    }
+}
+
+void GrapheListe::afficherFilePriorite()
+{
+    cout << "Etat de la file de priorité : " << endl;
+    if(m_filePriorite.size() > 0) {
+        std::priority_queue<Sommet*, std::vector<Sommet*>, CompareSommet> copieFilePriorite = m_filePriorite;
+
+        while(copieFilePriorite.size() > 0) {
+            Sommet* sommetFilePriorite = copieFilePriorite.top();
+            copieFilePriorite.pop();
+            cout << "[" << sommetFilePriorite->indice << "," << sommetFilePriorite->priorite << "]" << endl;
+        }
+
+
+    } else {
+        cout << "File de priorité vide." << endl;
     }
 }
 
@@ -354,23 +358,66 @@ void GrapheListe::VSARMP(Sommet *_sommet)
                 if(sommetLien->visite == false) {
                     sommetLien->priorite = (*j)->ponderation;
 
-                    // Test si le sommet se trouve déjà dans la file de priorité.
-
-                    std::priority_queue<Sommet*, std::vector<Sommet*>, CompareSommet> copieFilePriorite = m_filePriorite;
-                    bool sommetDansLaFileDePriorite = false;
-
-                    while(copieFilePriorite.size() > 0){
-                        Sommet* sommetFileTemp = copieFilePriorite.top();
-                        copieFilePriorite.pop();
-
-                        if(sommetFileTemp->indice == sommetLien->indice)
-                            sommetDansLaFileDePriorite = true;
-                    }
-
-                    if(sommetDansLaFileDePriorite == false)
+                    if(sommetLien->rencontre == false){
+                        sommetLien->rencontre = true;
                         m_filePriorite.push(sommetLien);
+                    }
                 }
             }
+        }
+    }
+}
+
+void GrapheListe::parcoursACPC()
+{
+    this->marquerSommetsNonVisites();
+
+    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
+        VSACPC((*i));
+    }
+}
+
+void GrapheListe::VSACPC(Sommet* _sommet)
+{
+    if(_sommet->visite == false) {
+        _sommet->priorite = 0;          // Initialise la priorité du sommet à 0.
+        m_filePriorite.push(_sommet);   // Ajoute le sommet avec priorité nulle dans la file de priorité.
+
+        while(m_filePriorite.size() > 0) {
+
+            Sommet* sommetFilePriorite = m_filePriorite.top();
+            m_filePriorite.pop();
+
+            sommetFilePriorite->visite = true;
+            traiterSommet(sommetFilePriorite);
+
+
+
+            for(std::list<Lien*>::iterator j = sommetFilePriorite->listeDeLien->begin(); j != sommetFilePriorite->listeDeLien->end(); j++) {
+
+                Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
+
+                if(sommetLien->visite == false){
+
+                    // Calcul de la priorité si il n'a pas déjà été emfilé.
+                    if(sommetLien->rencontre == false) {
+                        sommetLien->priorite = sommetFilePriorite->priorite + (*j)->ponderation; // priorité du sommet source + ponderation de l'arc.
+
+                    // Cas ou l'on doit recalculer la priorité. (P.ex pour I, dernière figure de la page 29)
+                    } else {
+                        if(sommetLien->priorite > sommetFilePriorite->priorite + (*j)->ponderation){
+                            sommetLien->priorite = sommetFilePriorite->priorite + (*j)->ponderation;
+                        }
+                    }
+
+                    if(sommetLien->rencontre == false){
+                        sommetLien->rencontre = true;
+                        m_filePriorite.push(sommetLien);
+                    }
+                }
+            }
+
+            afficherFilePriorite();
         }
     }
 }

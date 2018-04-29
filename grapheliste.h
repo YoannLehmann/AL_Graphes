@@ -44,10 +44,10 @@ public:
     void ajouterArc(char _sommetDepart, char _sommetArrive, int _ponderation = 1);
     void ajouterArrete(char _sommet1, char _sommet2, int _ponderation = 1);
 
-    // Fonctions utiles pour les différents parcours.
     void marquerSommetsNonVisites();
     void afficherPile();
     void afficherFile();
+    void afficherFilePriorite();
     Sommet* obtenirSommetDepuisIndice(char indice);
     void traiterSommet(Sommet* _sommet);
     void calculerPriorite(Sommet* _sommet, TypeParcours _typeParcours);
@@ -66,6 +66,9 @@ public:
 
     void parcoursARPM(); // Algorithme de Prim.
     void VSARMP(Sommet* _sommet);   // Visiter le Sommet avec ARMP.
+
+    void parcoursACPC(); // Algorithme de Dijkstra
+    void VSACPC(Sommet* _sommet);   // Visiter le Sommet avec ACPC.
 
     void DCFC(); // Détermination des composantes fortement connexes d'un graphe orienté.
     int  visiterSommetDCFC(Sommet* sommet);

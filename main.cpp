@@ -51,7 +51,8 @@ int main()
 
     cout << endl << "Liste après parcours : " << endl << endl;
 
-    gl2->parcoursARPM();
+    //gl2->parcoursARPM();
+    gl2->parcoursACPC();
 
 #endif
     return 0;
