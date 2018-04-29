@@ -422,46 +422,53 @@ void GrapheListe::VSACPC(Sommet* _sommet)
     }
 }
 
-void GrapheListe::DCFC()
+void GrapheListe::parcoursDCFC()
 {
-    this->m_nombreCourant = 0;
+    this->marquerSommetsNonVisites();
+    this->m_numero = 0;
 
-    for(std::list<struct Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++){
-        if((*i)->visite == false) {
-            this->visiterSommetDCFC((*i));
+    for(std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++){
+        if((*i)->visite == false){
+            this->VSDCFC((*i));
         }
     }
 }
 
-int GrapheListe::visiterSommetDCFC(Sommet *sommet)
+int GrapheListe::VSDCFC(Sommet* _sommet)
 {
-    this->m_nombreCourant++;
-    int minimum = m_nombreCourant;
-    sommet->visite = true;
-    sommet->marquage = m_nombreCourant;
-    this->m_pile.push(sommet);
+    m_numero = m_numero + 1;
+    int minimum = m_numero;
+    _sommet->visite = true;
+    _sommet->marquage = m_numero;
+    m_pile.push(_sommet);
 
-    for(std::list<struct Lien*>::iterator j = sommet->listeDeLien->begin(); j != sommet->listeDeLien->end(); j++) {
-        struct Sommet* sommetLink = obtenirSommetDepuisIndice((*j)->indice);
-        int marquage = 0;
+    for(std::list<Lien*>::iterator j = _sommet->listeDeLien->begin(); j != _sommet->listeDeLien->end(); j++) {
 
-        if(sommetLink->visite == false){
-            marquage = this->visiterSommetDCFC(sommetLink);
+        Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
+        int M = 0;
+
+        if(sommetLien->visite == false){
+            M = VSDCFC(sommetLien);
         } else {
-            marquage = sommet->marquage;
+            M = sommetLien->marquage;
         }
 
-        minimum = std::min(minimum, marquage);
+        minimum = min(minimum, M);
     }
 
-    if(minimum == sommet->marquage) {
-        struct Sommet* sommetADepiler = m_pile.top();
-        do {
-            sommetADepiler = m_pile.top();
-            std::cout << sommetADepiler->indice;
-        } while(this->m_pile.size() > 0 || sommetADepiler->indice != sommet->indice);
+    if(minimum == _sommet->marquage) {
 
-        std::cout << std::endl;
+        cout << "Composante fortement connexe : "  << endl << "[";
+        Sommet* sommetPile;
+        do {
+            sommetPile = m_pile.top();
+            m_pile.pop();
+            sommetPile->marquage = m_nombreSommet + 1;
+            cout << sommetPile->indice << ",";
+        } while(sommetPile->indice != _sommet->indice);
+
+
+        cout << "\b]" << endl; // \b permet de positionner le flux 1 caractère avant.
     }
 
     return minimum;

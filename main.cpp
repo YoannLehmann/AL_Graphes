@@ -10,6 +10,7 @@ using namespace std;
 
 GrapheListe* creerListeAdjacenteDuCours();
 GrapheListe* creerListeAdjacenteARPM();
+GrapheListe* creerListeAdjacenteOriente();
 
 int main()
 {
@@ -52,7 +53,13 @@ int main()
     cout << endl << "Liste après parcours : " << endl << endl;
 
     //gl2->parcoursARPM();
-    gl2->parcoursACPC();
+    //gl2->parcoursACPC();
+
+    GrapheListe* gl3 = creerListeAdjacenteOriente();
+    cout << "Liste avec arcs orientés : " << endl << endl;
+    gl3->afficher();
+
+    gl3->parcoursDCFC();
 
 #endif
     return 0;
@@ -140,6 +147,37 @@ GrapheListe* creerListeAdjacenteARPM() {
     grapheListe->ajouterArc('K','I', 1);
     grapheListe->ajouterArc('K','J', 1);
     grapheListe->ajouterArc('K','H', 1);
+
+    return grapheListe;
+}
+
+// Création de la liste adjacente du cours avec arcs orientés. (selon l'exemple p.31)
+GrapheListe* creerListeAdjacenteOriente() {
+    GrapheListe *grapheListe = new GrapheListe(11);
+
+    grapheListe->ajouterArc('A', 'B');
+    grapheListe->ajouterArc('A', 'F');
+    grapheListe->ajouterArc('A', 'C');
+
+    grapheListe->ajouterArc('C', 'J');
+    grapheListe->ajouterArc('C', 'G');
+    grapheListe->ajouterArc('C', 'H');
+
+    grapheListe->ajouterArc('D', 'F');
+
+    grapheListe->ajouterArc('E', 'G');
+    grapheListe->ajouterArc('E', 'D');
+
+    grapheListe->ajouterArc('F', 'E');
+
+    grapheListe->ajouterArc('G', 'A');
+
+    grapheListe->ajouterArc('I','K');
+
+    grapheListe->ajouterArc('J','K');
+    grapheListe->ajouterArc('J','I');
+
+    grapheListe->ajouterArc('K','H');
 
     return grapheListe;
 }

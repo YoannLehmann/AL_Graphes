@@ -70,8 +70,8 @@ public:
     void parcoursACPC(); // Algorithme de Dijkstra
     void VSACPC(Sommet* _sommet);   // Visiter le Sommet avec ACPC.
 
-    void DCFC(); // Détermination des composantes fortement connexes d'un graphe orienté.
-    int  visiterSommetDCFC(Sommet* sommet);
+    void parcoursDCFC(); // Parcours pour déterminer les composantes fortement connexes.
+    int  VSDCFC(Sommet* _sommet);    // Visiter le Sommet avec DCFC.
 
 
 private:
@@ -81,8 +81,8 @@ private:
 
     std::priority_queue<Sommet*, std::vector<Sommet*>, CompareSommet> m_filePriorite;
     int m_nombreSommet;
-    int m_nombreCourant;
-    int m_valeurPriorite;
+    int m_valeurPriorite;   // Utilisé pour l'algorithme de parcours généralisé.
+    int m_numero;           // Utilisé pour l'algorithme DCFC.
 };
 
 #endif // GRAPHELISTE_H
