@@ -5,13 +5,13 @@ using namespace std;
 
 GrapheListe::GrapheListe(int _nombreSommet)
 {
-    this->m_nombreSommet = _nombreSommet;
-    this->m_valeurPriorite = 0;
-    this->m_listeDeSommet = new std::list<Sommet*>();
+    m_nombreSommet = _nombreSommet;
+    m_valeurPriorite = 0;
+    m_listeDeSommet = new std::list<Sommet*>();
 
 
-    for(int i = 0; i < this->m_nombreSommet; i++){
-        struct Sommet* sommet = new Sommet();
+    for(int i = 0; i < m_nombreSommet; i++){
+        Sommet* sommet = new Sommet();
         sommet->rencontre = false;
         sommet->visite = false;
         sommet->listeDeLien = new std::list<Lien*>();
@@ -19,13 +19,13 @@ GrapheListe::GrapheListe(int _nombreSommet)
         sommet->marquage = 0;
         sommet->priorite = 0;
 
-        this->m_listeDeSommet->push_back(sommet);
+        m_listeDeSommet->push_back(sommet);
     }
 }
 
 GrapheListe::~GrapheListe()
 {
-    for (std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+    for (std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++) {
 
         for(std::list<Lien*>::iterator j = (*i)->listeDeLien->begin(); j != (*i)->listeDeLien->end(); j++){
             delete (*j);
@@ -35,13 +35,13 @@ GrapheListe::~GrapheListe()
         delete (*i);
         (*i) = nullptr;
     }
-    delete this->m_listeDeSommet;
+    delete m_listeDeSommet;
 }
 
 void GrapheListe::afficher()
 {
 
-    for (std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+    for (std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++) {
 
         // Entête.
         std::cout << "V["
@@ -63,7 +63,7 @@ void GrapheListe::afficher()
 
 void GrapheListe::ajouterArc(char _sommetDepart, char _sommetArrive, int _ponderation)
 {
-    std::list<Sommet*>::iterator it = this->m_listeDeSommet->begin();
+    std::list<Sommet*>::iterator it = m_listeDeSommet->begin();
 
     std::advance(it, static_cast<int>(_sommetDepart - 'A')); // Avance l'itérateur jusqu'au bon élément.
 
@@ -76,23 +76,23 @@ void GrapheListe::ajouterArc(char _sommetDepart, char _sommetArrive, int _ponder
 
 void GrapheListe::ajouterArrete(char _sommet1, char _sommet2, int _ponderation)
 {
-    this->ajouterArc(_sommet1, _sommet2, _ponderation);
-    this->ajouterArc(_sommet2, _sommet1, _ponderation);
+    ajouterArc(_sommet1, _sommet2, _ponderation);
+    ajouterArc(_sommet2, _sommet1, _ponderation);
 }
 
-void GrapheListe::marquerSommetsNonVisites()
+void GrapheListe::reinitialiserFlags()
 {
-    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
+    for(std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++){
         (*i)->visite = false;
         (*i)->rencontre = false;
         (*i)->priorite = 0;
     }
 }
 
-struct Sommet* GrapheListe::obtenirSommetDepuisIndice(char indice)
+Sommet* GrapheListe::obtenirSommetDepuisIndice(char _indice)
 {
-    for (std::list<Sommet*>::iterator j = this->m_listeDeSommet->begin(); j != this->m_listeDeSommet->end(); j++) {
-        if((*j)->indice == indice){
+    for (std::list<Sommet*>::iterator j = m_listeDeSommet->begin(); j != m_listeDeSommet->end(); j++) {
+        if((*j)->indice == _indice){
             return (*j);
         }
     }
@@ -110,7 +110,7 @@ void GrapheListe::afficherPile()
 
         // Dépilage et affichage de tous les éléments de la copie de la pile.
         while(copiePile.size() > 0){
-            struct Sommet* sommetPile = copiePile.top();
+            Sommet* sommetPile = copiePile.top();
             copiePile.pop();
             cout << "[" << sommetPile->indice << "]" << endl;
         }
@@ -161,9 +161,9 @@ void GrapheListe::afficherFilePriorite()
 
 void GrapheListe::parcoursProfondeurRecursif()
 {
-    this->marquerSommetsNonVisites();
+    reinitialiserFlags();
 
-    for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
+    for (std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++) {
         VSPR((*i));
     }
 
@@ -185,10 +185,10 @@ void GrapheListe::VSPR(Sommet *_sommet)
 
 void GrapheListe::parcoursProfondeurPile()
 {
-    this->marquerSommetsNonVisites();
+    reinitialiserFlags();
 
-    for (std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
-        this->VSPNR((*i));
+    for (std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++) {
+        VSPNR((*i));
     }
     cout << endl;
 }
@@ -206,9 +206,9 @@ void GrapheListe::traiterSommet(Sommet* _sommet)
 void GrapheListe::calculerPriorite(Sommet* _sommet, TypeParcours _typeParcours)
 {
     if(_typeParcours == PARCOURS_PROFONDEUR_PILE) {
-        this->m_valeurPriorite --;
+        m_valeurPriorite --;
     } else if(_typeParcours == PARCOURS_LARGEUR_FILE) {
-        this->m_valeurPriorite ++;
+        m_valeurPriorite ++;
     }
 
     _sommet->priorite = m_valeurPriorite;
@@ -251,10 +251,10 @@ void GrapheListe::VSPNR(Sommet* _sommet)
 
 void GrapheListe::parcoursLargeurFile()
 {
-    this->marquerSommetsNonVisites();
+    reinitialiserFlags();
 
-    for (std::list<struct Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
-        this->VSLNR((*i));
+    for (std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++) {
+        VSLNR((*i));
     }
 }
 
@@ -271,7 +271,7 @@ void GrapheListe::VSLNR(Sommet *_sommet)
             sommetFile->visite = true;              // Marque l'élément comme visité.
 
             // Traitement du sommet courant.
-            this->traiterSommet(sommetFile);
+            traiterSommet(sommetFile);
 
             // Affichage de l'état de la file.
             afficherFile();
@@ -291,10 +291,10 @@ void GrapheListe::VSLNR(Sommet *_sommet)
 
 void GrapheListe::parcoursGeneralise(TypeParcours _typeParcours)
 {
-    this->marquerSommetsNonVisites();
+    reinitialiserFlags();
 
-    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
-        this->VSGNR((*i), _typeParcours);
+    for(std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++){
+        VSGNR((*i), _typeParcours);
     }
 }
 
@@ -303,8 +303,8 @@ void GrapheListe::VSGNR(Sommet *_sommet, TypeParcours _typeParcours)
     if(_sommet->visite == false) {
         _sommet->rencontre = true;
 
-        this->calculerPriorite(_sommet, _typeParcours);
-        this->m_filePriorite.push(_sommet);
+        calculerPriorite(_sommet, _typeParcours);
+        m_filePriorite.push(_sommet);
 
         while(m_filePriorite.size() > 0) {
             Sommet* sommetFilePriorite = m_filePriorite.top();
@@ -312,15 +312,15 @@ void GrapheListe::VSGNR(Sommet *_sommet, TypeParcours _typeParcours)
 
             sommetFilePriorite->visite = true;
 
-            this->traiterSommet(sommetFilePriorite);
+            traiterSommet(sommetFilePriorite);
 
             for(std::list<Lien*>::iterator j = sommetFilePriorite->listeDeLien->begin(); j != sommetFilePriorite->listeDeLien->end(); j++) {
                 Sommet* sommetLien = obtenirSommetDepuisIndice((*j)->indice);
 
                 if(sommetLien->visite == false && sommetLien->rencontre == false) {
                     sommetLien->rencontre = true;
-                    this->calculerPriorite(sommetLien, _typeParcours);
-                    this->m_filePriorite.push(sommetLien);
+                    calculerPriorite(sommetLien, _typeParcours);
+                    m_filePriorite.push(sommetLien);
                 }
             }
         }
@@ -329,10 +329,10 @@ void GrapheListe::VSGNR(Sommet *_sommet, TypeParcours _typeParcours)
 
 void GrapheListe::parcoursARPM()
 {
-    this->marquerSommetsNonVisites();
+    reinitialiserFlags();
 
-    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++) {
-        this->VSARMP((*i));
+    for(std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++) {
+        VSARMP((*i));
     }
 }
 
@@ -341,9 +341,9 @@ void GrapheListe::VSARMP(Sommet *_sommet)
     if(_sommet->visite == false) {
 
         _sommet->priorite = 0; // Priorité quelconque.
-        this->m_filePriorite.push(_sommet);
+        m_filePriorite.push(_sommet);
 
-        while(this->m_filePriorite.size() > 0) {
+        while(m_filePriorite.size() > 0) {
 
             Sommet* sommetFilePriorite = m_filePriorite.top();
             m_filePriorite.pop();
@@ -370,9 +370,9 @@ void GrapheListe::VSARMP(Sommet *_sommet)
 
 void GrapheListe::parcoursACPC()
 {
-    this->marquerSommetsNonVisites();
+    reinitialiserFlags();
 
-    for(std::list<Sommet*>::iterator i = this->m_listeDeSommet->begin(); i != this->m_listeDeSommet->end(); i++){
+    for(std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++){
         VSACPC((*i));
     }
 }
@@ -424,12 +424,12 @@ void GrapheListe::VSACPC(Sommet* _sommet)
 
 void GrapheListe::parcoursDCFC()
 {
-    this->marquerSommetsNonVisites();
-    this->m_numero = 0;
+    reinitialiserFlags();
+    m_numero = 0;
 
     for(std::list<Sommet*>::iterator i = m_listeDeSommet->begin(); i != m_listeDeSommet->end(); i++){
         if((*i)->visite == false){
-            this->VSDCFC((*i));
+            VSDCFC((*i));
         }
     }
 }

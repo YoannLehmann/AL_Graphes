@@ -44,11 +44,11 @@ public:
     void ajouterArc(char _sommetDepart, char _sommetArrive, int _ponderation = 1);
     void ajouterArrete(char _sommet1, char _sommet2, int _ponderation = 1);
 
-    void marquerSommetsNonVisites();
+    void reinitialiserFlags();
     void afficherPile();
     void afficherFile();
     void afficherFilePriorite();
-    Sommet* obtenirSommetDepuisIndice(char indice);
+    Sommet* obtenirSommetDepuisIndice(char _indice);
     void traiterSommet(Sommet* _sommet);
     void calculerPriorite(Sommet* _sommet, TypeParcours _typeParcours);
 
